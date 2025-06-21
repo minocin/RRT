@@ -1,0 +1,31 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from math import sqrt
+
+# --- parameters ---
+sizes  = np.array([4, 8, 16], dtype=float)
+shots  = 20000
+# ------------------
+
+ghz_inv    = np.sqrt(shots) * np.sqrt(sizes)   # ∝ √N
+tensor_inv = shots * sizes                     # ∝ N
+
+scale      = ghz_inv[0]          # normalise to N=4 → 1
+ghz_inv    /= scale
+tensor_inv /= scale
+ref_sqrtN  = np.sqrt(sizes) / np.sqrt(sizes[0])
+ref_N      = sizes / sizes[0]
+
+plt.figure(figsize=(6,4))
+plt.loglog(sizes, ghz_inv,     'o-', label='GHZ  (theory)')
+plt.loglog(sizes, tensor_inv, 's-', label='GHZ + I (theory)')
+plt.loglog(sizes, ref_sqrtN,  'k--', label='√N trend')
+plt.loglog(sizes, ref_N,      'k:',  label='N trend')
+plt.xticks(sizes, sizes)
+plt.xlabel('Qubit number N')
+plt.ylabel('Relative 1 / σφ   (N = 4 → 1)')
+plt.title('Phase-sensing gain from interference tensor')
+plt.legend()
+plt.grid(True, which='both', ls='--', alpha=.3)
+plt.tight_layout()
+plt.show()

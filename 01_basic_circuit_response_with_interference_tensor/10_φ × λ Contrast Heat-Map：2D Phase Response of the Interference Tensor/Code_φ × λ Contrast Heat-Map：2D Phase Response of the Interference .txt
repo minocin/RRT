@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ---------------- analytic grid ----------------
+N = 8
+lam_vals = np.linspace(0, np.pi/2, 101)      # 0 … π/2
+phi_vals = np.linspace(0, 2*np.pi, 128)      # 0 … 2π
+
+L, P = np.meshgrid(lam_vals, phi_vals)
+delta = (np.cos(L) - 1) * np.cos(P)          # Δ⟨X^⊗8⟩
+
+# ------------------- plot ----------------------
+fig, ax = plt.subplots(figsize=(7,4))
+im = ax.imshow(delta, origin='lower', aspect='auto',
+               extent=[lam_vals[0], lam_vals[-1], phi_vals[0], phi_vals[-1]],
+               cmap='RdBu_r', vmin=-0.5, vmax=0.5)
+
+# λ ticks: 0, π/4, π/2
+ax.set_xticks([0, np.pi/4, np.pi/2])
+ax.set_xticklabels([r'$0$', r'$\pi/4$', r'$\pi/2$'])
+
+# φ ticks: 0, π, 2π
+ax.set_yticks([0, np.pi, 2*np.pi])
+ax.set_yticklabels([r'$0$', r'$\pi$', r'$2\pi$'])
+
+# horizontal reference lines
+for y in [0, np.pi, 2*np.pi]:
+    ax.axhline(y, color='k', ls='--', lw=0.5, alpha=0.5)
+
+# labels & title
+ax.set_xlabel(r'Interference strength $\lambda$ (rad)')
+ax.set_ylabel(r'Phase $\varphi$ (rad)')
+ax.set_title('Phase–interference contrast  (N = 8)')
+
+# colour-bar
+cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+cb.set_label(r'$\Delta\langle X^{\otimes8}\rangle$')
+cb.set_ticks([-0.5, 0, 0.5])
+
+plt.tight_layout()
+plt.show()

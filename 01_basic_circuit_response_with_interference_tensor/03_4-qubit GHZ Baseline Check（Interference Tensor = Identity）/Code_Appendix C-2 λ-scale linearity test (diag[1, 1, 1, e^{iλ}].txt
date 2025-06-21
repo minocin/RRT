@@ -1,0 +1,33 @@
+# Appendix C-2: λ-scale linearity test (diag[1, 1, 1, e^{iλ}])
+
+# ========== Stage III-2: GHZ scale – λ sweep (9 conditions) ==========
+!pip -q install "qiskit~=0.45" "qiskit-aer~=0.13"
+
+import numpy as np
+from math import cos, pi
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, Pauli, Operator
+
+sim = AerSimulator(method="statevector")
+
+def ITOP(lam):
+    return Operator(np.diag([1, 1, 1, np.exp(1j * lam)]))   # Interference tensor
+
+def ghz_coeff(lam, phi):
+    qc = QuantumCircuit(4)
+    qc.h(0); qc.cx(0, 1); qc.cx(1, 2); qc.cx(2, 3)
+    qc.append(ITOP(lam), [0, 1])
+    qc.rz(phi, 0)
+    sv = Statevector(qc)
+    return sv.expectation_value(Pauli('XXXX')).real
+
+LAM_LIST = [0.01, 0.02, 0.05]
+PHI_LIST = [0, pi / 2, pi]
+
+print("| λ  | φ(rad) | GHZ-coeff | cos λ |")
+print("|----|--------|-----------|-------|")
+for lam in LAM_LIST:
+    for phi in PHI_LIST:
+        val = ghz_coeff(lam, phi)
+        print(f"| {lam:0.2f} | {phi:5.2f} | {val: .6f} | {cos(lam): .6f} |")

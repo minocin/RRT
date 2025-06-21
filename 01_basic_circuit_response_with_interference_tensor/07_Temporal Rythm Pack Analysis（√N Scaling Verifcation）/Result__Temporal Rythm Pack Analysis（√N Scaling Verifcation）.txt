@@ -1,0 +1,4 @@
+ n |   z score  (theoretical ratio 1:√2:2)
+ 8 |  8095
+16 | 11449
+32 | 16191

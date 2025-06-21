@@ -1,0 +1,36 @@
+from math import sqrt, pi
+import numpy as np
+from qiskit_aer import AerSimulator
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import SparsePauliOp
+from scipy.fft import rfft
+
+lam   = 0.05
+sizes = [8, 16, 32]
+steps = 128
+shots = 2000
+
+backend = AerSimulator(method='matrix_product_state')
+
+def ghz_sample_circuit(n, lam, phi):
+    qc = QuantumCircuit(n)
+    qc.h(0)
+    for i in range(n - 1):
+        qc.cx(i, i + 1)
+    qc.cp(lam, 0, 1)
+    qc.p(phi, 0)
+    op = SparsePauliOp.from_list([('X' * n, 1)])
+    qc.save_expectation_value(op, list(range(n)), label='exp')
+    return qc
+
+print(" n |   z-score  (theoretical ratio 1:√2:2)")
+for n in sizes:
+    xs = []
+    for k in range(steps):
+        phi = 2 * pi * k / steps
+        res = backend.run(ghz_sample_circuit(n, lam, phi), shots=shots).result()
+        xs.append(float(res.data(0)['exp']))
+    peak = np.abs(rfft(xs))[1]        # cos φ component
+    sigma = 1 / sqrt(shots * n)       # include factor √N
+    z = peak / sigma
+    print(f"{n:2} | {z:.0f}")

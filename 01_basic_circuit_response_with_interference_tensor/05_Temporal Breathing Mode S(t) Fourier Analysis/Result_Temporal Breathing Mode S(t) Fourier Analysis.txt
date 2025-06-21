@@ -1,0 +1,3 @@
+main-peak freq = 0.195 rad⁻¹
+z value = 513.11
+elapsed 6.8s

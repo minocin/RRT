@@ -1,0 +1,36 @@
+# Install Aer once if it is not already available
+# !pip -q install qiskit-aer
+
+from math import cos
+import numpy as np
+from qiskit_aer import AerSimulator
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import SparsePauliOp, Pauli
+
+lam   = 0.05
+sizes = [8, 16, 32]
+backend = AerSimulator(method='matrix_product_state')
+
+def ghz_circuit(n, lam):
+    qc = QuantumCircuit(n)
+    qc.h(0)
+    for i in range(n - 1):
+        qc.cx(i, i + 1)
+
+    # --- Decompose cp(lam, 0, 1) into primitive gates ---
+    qc.cx(0, 1)
+    qc.rz(lam, 1)          # Implement the phase with RZ
+    qc.cx(0, 1)
+    # ----------------------------------------------------
+
+    # Directly save <X^⊗n>
+    op = SparsePauliOp.from_list([('X' * n, 1)])
+    qc.save_expectation_value(op, list(range(n)), label='exp')
+    return qc
+
+print(" n |  <X^⊗n>   cosλ    Δ")
+for n in sizes:
+    result = backend.run(ghz_circuit(n, lam), shots=0).result()
+    exp    = float(result.data(0)['exp'])
+    theo   = cos(lam)
+    print(f"{n:2}| {exp: .6f}  {theo: .6f}  {exp - theo:+.2e}")

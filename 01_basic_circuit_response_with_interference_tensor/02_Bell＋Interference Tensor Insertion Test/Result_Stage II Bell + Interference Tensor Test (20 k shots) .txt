@@ -1,0 +1,2 @@
+baseline CHSH = 2.82842712
+tensor   CHSH = 2.82842712

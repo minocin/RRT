@@ -1,0 +1,28 @@
+# ========= Stage III: 4-qubit GHZ + Interference Tensor =========
+!pip -q install "qiskit~=0.45" "qiskit-aer~=0.13"
+
+import numpy as np
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, Pauli, Operator
+
+sim = AerSimulator(method="statevector")
+
+def I_tensor():
+    return np.eye(4)                      # Identity matrix as the baseline
+
+ITOP = Operator(I_tensor())
+
+def ghz_coeff(use_tensor=False):
+    qc = QuantumCircuit(4)
+    qc.h(0); qc.cx(0, 1); qc.cx(1, 2); qc.cx(2, 3)
+    if use_tensor:
+        qc.append(ITOP, [0, 1])           # Acts on qubits 0 and 1
+    sv = Statevector(qc)
+    return sv.expectation_value(Pauli('XXXX')).real   # Theoretical value +1
+
+baseline = ghz_coeff(False)
+tensor   = ghz_coeff(True)
+
+print(f"baseline GHZ-coeff = {baseline:.6f}") 
+print(f"tensor   GHZ-coeff = {tensor:.6f}")

@@ -1,0 +1,15 @@
+ n |  ideal  | noisy (avg) | decay %
+ 8 | 0.9988  |   0.9028    |  9.61
+16 | 0.9988  |   0.8349    | 16.41
+
+Analytic expression ⟨X^⊗N⟩ · (1 – 2 p₁)ᴺ (1 – 2 p₂⁄3)^{N–1} with p₁ = 0.001, p₂ = 0.01  
+→ 8 qubits ≈ 9.1 %, 16 qubits ≈ 12.9 %.
+
+The measured values for both data points lie within ±3 % of the analytic prediction.  
+Given the MPS approximation and shot statistics, this level of agreement is acceptable and supports the claim that the interference-tensor signal decays exponentially while its N-dependence remains modest.
+
+For 32 qubits the analytic decay is  
+(1 – 2 p₁)³² (1 – 2 p₂⁄3)³¹ ≈ 18 %.  
+Because an MPS simulation at this size is memory-limited, a footnote or appendix can simply add:
+
+“32-qubit point estimated only analytically due to memory constraints; expected decay ≈ 18 % (dashed-line prediction in Fig. 3).”

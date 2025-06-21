@@ -1,0 +1,2 @@
+baseline GHZ-coeff = 1.000000
+tensor   GHZ-coeff = 1.000000

@@ -1,0 +1,51 @@
+# Appendix E-1: Temporal breathing mode S(t) Fourier analysis
+
+# ========== Stage V: Temporal breathing & FFT (256 steps) ==========
+!pip -q install "qiskit~=0.45" "qiskit-aer~=0.13"
+
+import numpy as np, time
+from math import cos
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, Pauli, Operator
+
+# ---- Parameters ----
+T_STEPS = 256
+REPEAT  = 20
+LAM     = 0.05
+dt      = 0.02                           # phase increment
+
+def ITOP():                               # Interference tensor
+    return Operator(np.diag([1, 1, 1, np.exp(1j * LAM)]))
+
+sim = AerSimulator(method="statevector")
+
+def coeff_at_phase(phase):
+    qc = QuantumCircuit(4)
+    qc.h(0); qc.cx(0, 1); qc.cx(1, 2); qc.cx(2, 3)
+    qc.append(ITOP(), [0, 1])
+    qc.rz(phase, 0)                      # phase drive
+    for q in range(4): qc.h(q)           # rotate to X⊗4 measurement basis
+    sv = Statevector(qc)
+    return sv.expectation_value(Pauli('ZZZZ')).real
+
+def trace_S():
+    vals = np.zeros(T_STEPS)
+    for _ in range(REPEAT):
+        vals += np.array([coeff_at_phase(k * dt) for k in range(T_STEPS)])
+    return vals / REPEAT
+
+t0   = time.time()
+S_t  = trace_S()
+spec = np.abs(np.fft.rfft(S_t))**2
+freq = np.fft.rfftfreq(T_STEPS, d=dt)
+
+peak_idx    = np.argmax(spec[1:]) + 1    # excluding DC
+peak_val    = spec[peak_idx]
+background  = np.delete(spec, [0, peak_idx])
+z           = (peak_val - np.mean(background)) / np.std(background, ddof=1)
+
+print(f"main-peak freq = {freq[peak_idx]:.3f} rad⁻¹")
+print(f"z value = {z:.2f}")              # pass criterion: > 5σ
+print(f"elapsed {time.time() - t0:.1f}s")
+# ================================================================

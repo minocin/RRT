@@ -1,0 +1,66 @@
+# ============ Stage IV: Noise Robustness – Depolarizing Model ==========
+!pip -q install "qiskit~=0.45" "qiskit-aer~=0.13"
+
+import numpy as np, time
+from math import pi, cos
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel, depolarizing_error
+from qiskit.quantum_info import Pauli, Operator
+
+# ----- Parameters -----
+SHOTS  = 8_192          # shots per run
+REPEAT = 20             # repetitions for ideal / noisy backend
+LAM    = 0.05           # phase of the interference tensor
+PHI    = 0.0            # additional phase drive
+
+# ----- Interference tensor  (diag[1, 1, 1, e^{iλ}]) -----
+def ITOP():
+    return Operator(np.diag([1, 1, 1, np.exp(1j * LAM)]))
+
+# ----- 4-qubit GHZ circuit -----
+def ghz_counts(sim):
+    qc = QuantumCircuit(4)
+    qc.h(0); qc.cx(0, 1); qc.cx(1, 2); qc.cx(2, 3)
+    qc.append(ITOP(), [0, 1])
+    qc.rz(PHI, 0)
+    qc.measure_all()
+    job = sim.run(qc, shots=SHOTS)
+    return job.result().get_counts()
+
+def exp_xxxx(cnt):
+    pos = neg = 0
+    for bit, n in cnt.items():
+        parity = (-1) ** (bit.count('1') % 2)   # odd number of 1’s  →  −1
+        if parity == 1:
+            pos += n
+        else:
+            neg += n
+    return (pos - neg) / (pos + neg)
+
+# ----- Simulators -----
+ideal_sim = AerSimulator(method="statevector")
+
+# Depolarizing errors: 1-qubit p=0.001, 2-qubit p=0.01
+noise = NoiseModel()
+noise.add_all_qubit_quantum_error(depolarizing_error(0.001, 1),
+                                  ['u3', 'u2', 'u1', 'rz', 'ry'])
+noise.add_all_qubit_quantum_error(depolarizing_error(0.01,  2),
+                                  ['cx'])
+noisy_sim = AerSimulator(method="density_matrix", noise_model=noise)
+
+def sample(sim):
+    vals = [exp_xxxx(ghz_counts(sim)) for _ in range(REPEAT)]
+    return np.mean(vals), np.std(vals, ddof=1)
+
+t0 = time.time()
+mean_id, std_id = sample(ideal_sim)
+mean_no, std_no = sample(noisy_sim)
+
+print("| backend |   mean   |    σ   |")
+print("|---------|----------|--------|")
+print(f"| ideal   | {mean_id: .5f} | {std_id: .5f} |")
+print(f"| noisy   | {mean_no: .5f} | {std_no: .5f} |")
+print(f"expected cos λ = {cos(LAM): .5f}")
+print(f"elapsed ~{time.time() - t0:.1f}s")
+# ======================================================================

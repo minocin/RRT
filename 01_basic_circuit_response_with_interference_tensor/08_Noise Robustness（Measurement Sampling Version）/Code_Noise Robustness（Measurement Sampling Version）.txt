@@ -1,0 +1,44 @@
+# 8. Noise robustness (measurement sampling version)  λ = 0.05
+!pip -q install qiskit-aer
+
+from math import cos, sqrt
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+from qiskit_aer.noise import NoiseModel, depolarizing_error
+
+lam     = 0.05
+sizes   = [8, 16]
+shots   = 20000                 # number of measurement shots
+p1, p2  = 0.001, 0.01           # 1Q / 2Q depolarizing probabilities
+
+# ── Noise model ─────────────────────────────
+noise = NoiseModel()
+noise.add_all_qubit_quantum_error(depolarizing_error(p1, 1), ['x','y','z','h','rx','ry','rz','u1','u2','u3'])
+noise.add_all_qubit_quantum_error(depolarizing_error(p2, 2), ['cx'])
+backend = AerSimulator(method='matrix_product_state', noise_model=noise)
+
+def ghz_measure_X(n, lam):
+    """Prepare GHZ, apply CP(λ), measure X⊗n as ±1 outcomes"""
+    qc = QuantumCircuit(n, n)
+    qc.h(0)
+    for i in range(n-1):
+        qc.cx(i, i+1)
+    qc.cx(0,1); qc.rz(lam,1); qc.cx(0,1)  # CP(λ)
+    qc.h(range(n))                        # rotate to X basis
+    qc.measure(range(n), range(n))
+    return qc
+
+print(" n |  ideal  | noisy(avg) | decay %")
+for n in sizes:
+    ideal = cos(lam)                      # ≃ 0.9988
+    counts = backend.run(
+        ghz_measure_X(n, lam), shots=shots
+    ).result().get_counts()
+    # parity: even → +1, odd → −1
+    parity_sum = 0
+    for bitstr, c in counts.items():
+        parity = (-1) ** (bitstr.count('1') % 2)
+        parity_sum += parity * c
+    noisy = parity_sum / shots
+    decay = (ideal - noisy) / ideal * 100
+    print(f"{n:2}| {ideal:.4f} |   {noisy:.4f} | {decay:6.2f}")

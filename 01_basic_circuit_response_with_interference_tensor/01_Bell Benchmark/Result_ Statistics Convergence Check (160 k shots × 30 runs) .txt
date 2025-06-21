@@ -1,0 +1,4 @@
+mean CHSH = 2.82941833
+sample σ  = 0.00619
+z = 0.88
+(runtime 35 s)
