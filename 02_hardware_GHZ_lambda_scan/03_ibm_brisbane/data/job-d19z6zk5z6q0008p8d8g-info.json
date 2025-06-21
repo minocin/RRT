@@ -1,0 +1,40 @@
+{
+  "id": "d19z6zk5z6q0008p8d8g",
+  "hub": "ibm-q",
+  "group": "open",
+  "project": "main",
+  "backend": "ibm_brisbane",
+  "state": {
+    "status": "Completed"
+  },
+  "status": "Completed",
+  "params": {
+    "pubs": [
+      [
+        "OPENQASM 2.0; include \"qelib1.inc\"; qreg q[127]; creg c[4]; x q[0]; measure q[0] -> c[0]; measure q[1] -> c[1]; measure q[2] -> c[2]; measure q[3] -> c[3];",
+        [],
+        4096
+      ]
+    ],
+    "version": 2,
+    "support_qiskit": false
+  },
+  "program": {
+    "id": "sampler"
+  },
+  "created": "2025-06-19T11:24:46.449Z",
+  "ended": "2025-06-19T11:24:54.210Z",
+  "runtime": "",
+  "cost": 600,
+  "tags": [
+    "composer-info:composer:true",
+    "composer-info:code-id:ef82d445e91d398f988162b788b55d43dd689bcfa12e294fe49570ec281c2555",
+    "composer-info:code-version-id:6853f3614e66de661c0f8e65"
+  ],
+  "session_id": null,
+  "usage": {
+    "seconds": 0
+  },
+  "private": false,
+  "user_id": "684d513ffd100e6964cc8b2d"
+}
